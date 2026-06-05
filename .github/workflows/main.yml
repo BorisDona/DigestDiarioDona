@@ -1,0 +1,42 @@
+name: Digest Diario
+
+on:
+  schedule:
+    # 8:00 AM hora New York (EST = UTC-5, EDT = UTC-4)
+    # Cron usa UTC. En horario estándar (nov-mar) son 13:00 UTC; en horario de verano (mar-nov) son 12:00 UTC.
+    # Ponemos ambas pa' cubrir. La que no aplique solo no hará nada porque GitHub no permite CRON_TZ estable en free tier.
+    - cron: "0 13 * * *"
+    - cron: "0 12 * * *"
+  workflow_dispatch: # Permite correr manual desde la pestaña Actions
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Digest Nacional Chile
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+        run: python scripts/digest_nacional.py
+
+      - name: Digest Internacional
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+        run: python scripts/digest_internacional.py
+
+      - name: Digest Videojuegos Indie
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+        run: python scripts/digest_indie.py
